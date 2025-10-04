@@ -39,7 +39,7 @@ Resources:
   LowStockAlertsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: LowStockAlertsTopic
+      TopicName: BloodBankAlertsProd
       # Ensure you manually subscribe an email address to this topic after deployment
 
   # ------------------------------------------------------------------
