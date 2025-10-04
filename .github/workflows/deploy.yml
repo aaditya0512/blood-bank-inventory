@@ -45,10 +45,9 @@ jobs:
             --stack-name BloodBankStack \
             --region ${{ env.AWS_REGION }} \
             --capabilities CAPABILITY_IAM \
-            --no-confirm-changeset
+            --no-confirm-changeset \ # <--- Necessary for CI/CD
             --no-fail-on-empty-changeset \
-            --resolve-s3 # Ensures SAM can upload code artifacts
-
+            --resolve-s3               # <--- This is the missing piece!
       - name: Get API Endpoint URL
         id: get_api_url
         # Uses AWS CLI to retrieve the API URL from the deployed stack's outputs
