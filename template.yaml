@@ -10,7 +10,7 @@ Globals:
     # Define environment variables used by the Lambda functions
     Environment:
       Variables:
-        DYNAMODB_TABLE_NAME: !Ref BloodInventoryTable
+        DYNAMODB_TABLE_NAME: !Ref BloodBankInventory
         SNS_TOPIC_ARN: !Ref LowStockAlertsTopic
 
 Resources:
@@ -39,7 +39,7 @@ Resources:
   LowStockAlertsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: BloodBankAlertsProd
+      TopicName: LowStockAlertsTopic
       # Ensure you manually subscribe an email address to this topic after deployment
 
   # ------------------------------------------------------------------
@@ -53,9 +53,9 @@ Resources:
       # Grant permissions to read/write DynamoDB and publish to SNS
       Policies:
         - DynamoDBWritePolicy:
-            TableName: !Ref BloodInventoryTable
+            TableName: !Ref BloodBankInventory
         - SNSPublishMessagePolicy:
-            TopicName: !GetAtt LowStockAlertsTopic.TopicName
+            TopicArn: !Ref LowStockAlertsTopic
       Events:
         Api:
           Type: Api
@@ -75,7 +75,7 @@ Resources:
       # Grant read-only permission to the DynamoDB table
       Policies:
         - DynamoDBReadPolicy:
-            TableName: !Ref BloodInventoryTable
+            TableName: !Ref BloodBankInventory
       Events:
         Api:
           Type: Api
