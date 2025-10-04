@@ -55,7 +55,7 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Ref BloodInventoryTable
         - SNSPublishMessagePolicy:
-            TopicArn: !Ref LowStockAlertsTopic
+            TopicName: !GetAtt LowStockAlertsTopic.TopicName
       Events:
         Api:
           Type: Api
