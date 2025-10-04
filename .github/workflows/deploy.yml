@@ -37,7 +37,7 @@ jobs:
       - name: SAM Build
         run: sam build --template template.yaml
 
-      - name: SAM Deploy (Backend)
+     - name: SAM Deploy (Backend)
         id: sam_deploy
         run: |
           sam deploy \
@@ -46,7 +46,8 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --capabilities CAPABILITY_IAM \
             --confirm-changeset \
-            --no-fail-on-empty-changeset
+            --no-fail-on-empty-changeset \
+            --resolve-s3  # <--- ADD THIS FLAG
       
       - name: Get API Endpoint URL
         id: get_api_url
