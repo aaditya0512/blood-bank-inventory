@@ -8,10 +8,7 @@ Globals:
     Timeout: 10
     MemorySize: 128
     # Define environment variables used by the Lambda functions
-    Environment:
-      Variables:
-        DYNAMODB_TABLE_NAME: !Ref BloodBankInventory
-        SNS_TOPIC_ARN: !Ref LowStockAlertsTopic
+  
 
 Resources:
   # ------------------------------------------------------------------
