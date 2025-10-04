@@ -1,11 +1,8 @@
-// --- START: CI/CD INJECTION BLOCK ---
-// !!! This placeholder will be replaced by GitHub Actions during deployment !!!
-// The workflow will replace this entire line with: const BASE_API_URL = 'https://YOUR_LIVE_URL/dev/'; 
+
 const BASE_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/'; 
 
 const GET_API_URL = BASE_API_URL + 'status';
 const POST_API_URL = BASE_API_URL + 'inventory';
-// --- END: CI/CD INJECTION BLOCK ---
 
 const inventoryList = document.getElementById('inventory-list');
 const lastUpdatedSpan = document.getElementById('last-updated');
@@ -13,24 +10,21 @@ const updateForm = document.getElementById('update-form');
 const bloodTypeSelect = document.getElementById('bloodType');
 const formMessage = document.getElementById('form-message');
 
-// Function to determine color based on stock vs. threshold
 function getStatusClass(currentStock, safetyThreshold) {
     if (currentStock < safetyThreshold) {
-        return 'status-RED'; // Critical: Below threshold
+        return 'status-RED'; 
     } else if (currentStock < safetyThreshold * 1.5) {
-        return 'status-YELLOW'; // Warning: Approaching threshold (e.g., 50% buffer)
+        return 'status-YELLOW';
     } else {
-        return 'status-GREEN'; // Good
+        return 'status-GREEN'; 
     }
 }
 
-// Function to fetch data and render dashboard
 async function fetchAndRenderInventory() {
     try {
-        // 1. CAPTURE the currently selected BloodType BEFORE refresh
+
         const currentSelection = bloodTypeSelect.value; 
 
-        // 2. Execute fetch and parsing (using the dynamic GET_API_URL)
         const response = await fetch(GET_API_URL);
         const responseBody = await response.json();
 
@@ -43,7 +37,6 @@ async function fetchAndRenderInventory() {
         inventoryList.innerHTML = '';
         const bloodTypes = [];
 
-        // --- Inventory Card Rendering ---
         data.forEach(item => {
             const bloodType = item.BloodType;
             const currentStock = Number(item.CurrentStock); 
@@ -61,17 +54,12 @@ async function fetchAndRenderInventory() {
             `;
             inventoryList.appendChild(card);
         });
-        // --------------------------------
-
-        // 3. Update the form select options
         bloodTypeSelect.innerHTML = bloodTypes.map(type => `<option value="${type}">${type}</option>`).join('');
 
-        // 4. RESTORE the previously selected BloodType
         if (currentSelection) {
             bloodTypeSelect.value = currentSelection;
         }
 
-        // Update timestamp
         lastUpdatedSpan.textContent = new Date().toLocaleTimeString();
 
     } catch (error) {
@@ -80,7 +68,6 @@ async function fetchAndRenderInventory() {
     }
 }
 
-// Function to handle inventory update simulation
 updateForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     formMessage.classList.add('hidden');
@@ -90,14 +77,12 @@ updateForm.addEventListener('submit', async (e) => {
     const unitsQuantity = parseInt(document.getElementById('units').value); 
     const operation = document.getElementById('operation').value;
     
-    // --- New Logic: Apply the sign based on operation ---
     let unitsChange;
     if (operation === 'usage') {
         unitsChange = unitsQuantity * -1; 
     } else {
         unitsChange = unitsQuantity;
     }
-    // ----------------------------------------------------
     
     if (isNaN(unitsChange) || unitsChange === 0) {
         formMessage.textContent = "Please enter a valid quantity.";
@@ -109,7 +94,6 @@ updateForm.addEventListener('submit', async (e) => {
     const payload = {
         BloodType: bloodType,
         UnitsChange: unitsChange // Use the calculated signed value
-        // LocationID defaults to 'Main_Branch' in Lambda
     };
 
     try {
@@ -147,7 +131,5 @@ updateForm.addEventListener('submit', async (e) => {
     formMessage.classList.remove('hidden');
 });
 
-// Initial load and set up auto-refresh
 fetchAndRenderInventory();
-// Auto-refresh data every 5 seconds
 setInterval(fetchAndRenderInventory, 5000);
