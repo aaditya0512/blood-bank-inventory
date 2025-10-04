@@ -1,37 +1,105 @@
-# template.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Blood Bank Inventory & Request System (Serverless)
+
+Globals:
+  Function:
+    Runtime: python3.9
+    Timeout: 10
+    MemorySize: 128
+    # Define environment variables used by the Lambda functions
+    Environment:
+      Variables:
+        DYNAMODB_TABLE_NAME: !Ref BloodInventoryTable
+        SNS_TOPIC_ARN: !Ref LowStockAlertsTopic
+
 Resources:
-  # Define the DynamoDB table
+  # ------------------------------------------------------------------
+  # 1. DATABASE (DynamoDB)
+  # ------------------------------------------------------------------
   BloodInventoryTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: BloodBankInventory
-      KeySchema:
-        - AttributeName: BloodType
-          KeyType: HASH
-        - AttributeName: LocationID
-          KeyType: RANGE
       AttributeDefinitions:
         - AttributeName: BloodType
           AttributeType: S
         - AttributeName: LocationID
           AttributeType: S
-      # ... other settings
+      KeySchema:
+        - AttributeName: BloodType
+          KeyType: HASH
+        - AttributeName: LocationID
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST # Use On-Demand for cost efficiency
 
-  # Define the Lambda function for updates and alerts
+  # ------------------------------------------------------------------
+  # 2. NOTIFICATION (SNS)
+  # ------------------------------------------------------------------
+  LowStockAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: LowStockAlertsTopic
+      # Ensure you manually subscribe an email address to this topic after deployment
+
+  # ------------------------------------------------------------------
+  # 3. BACKEND: UPDATE/ALERT Lambda (POST /inventory)
+  # ------------------------------------------------------------------
   UpdateInventoryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: backend/update_inventory_and_alert.lambda_handler
-      Runtime: python3.9
+      Handler: update_inventory_and_alert.lambda_handler
+      CodeUri: backend/ # Points to the backend directory
+      # Grant permissions to read/write DynamoDB and publish to SNS
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref BloodInventoryTable
         - SNSPublishMessagePolicy:
-            TopicArn: arn:aws:sns:us-east-1:545313858792:LowStockAlertsTopic
+            TopicArn: !Ref LowStockAlertsTopic
       Events:
         Api:
           Type: Api
           Properties:
             Path: /inventory
-            Method: post
-# ... and define GetInventoryFunction and S3 bucket hosting
+            Method: POST
+            RestApiId: !Ref BloodBankApiGateway # Link to the API Gateway defined below
+            
+  # ------------------------------------------------------------------
+  # 4. BACKEND: READ STATUS Lambda (GET /status)
+  # ------------------------------------------------------------------
+  GetInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get_inventory_status.lambda_handler
+      CodeUri: backend/ # Points to the backend directory
+      # Grant read-only permission to the DynamoDB table
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref BloodInventoryTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /status
+            Method: GET
+            RestApiId: !Ref BloodBankApiGateway # Link to the API Gateway defined below
+
+  # ------------------------------------------------------------------
+  # 5. API GATEWAY (Shared across functions)
+  # ------------------------------------------------------------------
+  BloodBankApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'" # Allow all origins for the dashboard (S3)
+
+# ------------------------------------------------------------------
+# OUTPUTS (Used to retrieve the API URL after deployment)
+# ------------------------------------------------------------------
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${BloodBankApiGateway}.execute-api.${AWS::Region}.amazonaws.com/dev/"
