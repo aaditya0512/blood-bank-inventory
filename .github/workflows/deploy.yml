@@ -19,8 +19,8 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AKIAX55Z5ETUBKVUQSAG}}
-          aws-secret-access-key: ${{ secrets.W4goR2pKuiqpsfmSx7GEuLq3NuVf80NHAdmndXUU}}
+          aws-access-key-id: ${{ secrets.AKIAX55Z5ETUH2HRUZHC}}
+          aws-secret-access-key: ${{ secrets.uW14sR7Z7i7vuKS9gkEzixjwS+2eWghDHToeOO4C}}
           aws-region: us-east-1 # Change to your region
 
       - name: SAM Build and Deploy
