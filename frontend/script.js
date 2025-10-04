@@ -1,6 +1,11 @@
-// !!! REPLACE WITH YOUR ACTUAL API GATEWAY URLS !!!
-const GET_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/status';
-const POST_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/inventory';
+// --- START: CI/CD INJECTION BLOCK ---
+// The live API URL will be injected here by the GitHub Actions workflow.
+// Example: const BASE_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/'; 
+const BASE_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/'; 
+
+const GET_API_URL = BASE_API_URL + 'status';
+const POST_API_URL = BASE_API_URL + 'inventory';
+// --- END: CI/CD INJECTION BLOCK ---
 
 const inventoryList = document.getElementById('inventory-list');
 const lastUpdatedSpan = document.getElementById('last-updated');
@@ -20,26 +25,34 @@ function getStatusClass(currentStock, safetyThreshold) {
 }
 
 // Function to fetch data and render dashboard
-// Function to fetch data and render dashboard
 async function fetchAndRenderInventory() {
     try {
-        // 1. CAPTURE the currently selected BloodType BEFORE refresh
         const currentSelection = bloodTypeSelect.value; 
 
-        // 2. Execute fetch and parsing (same as before)
+        // 1. Network Fetch
         const response = await fetch(GET_API_URL);
-        const responseBody = await response.json();
 
+        // 2. HTTP Status Check (Network Layer Error)
+        if (!response.ok) {
+            throw new Error('Network call failed with status code ' + response.status);
+        }
+
+        // 3. Parse Outer JSON (API Gateway Response)
+        const responseBody = await response.json(); 
+        
+        // 4. Check Lambda Status Code
         if (responseBody.statusCode !== 200) {
-            throw new Error('API returned status code ' + responseBody.statusCode);
+            // This catches errors originating from the Lambda execution
+            throw new Error('API returned Lambda status code ' + responseBody.statusCode + ' with error: ' + responseBody.body);
         }
         
+        // 5. Parse Inner JSON (Lambda Body String)
         const data = JSON.parse(responseBody.body); 
 
         inventoryList.innerHTML = '';
         const bloodTypes = [];
 
-        // --- Inventory Card Rendering (Remains the same) ---
+        // --- Inventory Card Rendering ---
         data.forEach(item => {
             const bloodType = item.BloodType;
             const currentStock = Number(item.CurrentStock); 
@@ -57,7 +70,7 @@ async function fetchAndRenderInventory() {
             `;
             inventoryList.appendChild(card);
         });
-        // ----------------------------------------------------
+        // --------------------------------
 
         // 3. Update the form select options
         bloodTypeSelect.innerHTML = bloodTypes.map(type => `<option value="${type}">${type}</option>`).join('');
@@ -83,22 +96,19 @@ updateForm.addEventListener('submit', async (e) => {
     formMessage.className = '';
 
     const bloodType = document.getElementById('bloodType').value;
-    const unitsQuantity = parseInt(document.getElementById('units').value); // Get positive quantity
+    const unitsQuantity = parseInt(document.getElementById('units').value); 
     const operation = document.getElementById('operation').value;
     
     // --- New Logic: Apply the sign based on operation ---
     let unitsChange;
     if (operation === 'usage') {
-        // Usage means the quantity is subtracted (negative change)
         unitsChange = unitsQuantity * -1; 
     } else {
-        // Donation means the quantity is added (positive change)
         unitsChange = unitsQuantity;
     }
     // ----------------------------------------------------
     
     if (isNaN(unitsChange) || unitsChange === 0) {
-        // Check for 0 or NaN based on the quantity field
         formMessage.textContent = "Please enter a valid quantity.";
         formMessage.classList.remove('hidden');
         formMessage.classList.add('message-error');
@@ -120,27 +130,19 @@ updateForm.addEventListener('submit', async (e) => {
             body: JSON.stringify(payload)
         });
 
-        // 1. Parse the outer response object from API Gateway
         const responseBody = await response.json();
-
-        // 2. Parse the inner JSON string from the 'body' field
         let result;
         if (responseBody.body) {
-             // Handle Lambda Proxy Integration (body is a JSON string)
             result = JSON.parse(responseBody.body);
         } else {
-            // Handle non-proxy integration or direct error messages
             result = responseBody; 
         }
 
         if (response.ok && responseBody.statusCode === 200) {
-            // Use the correctly parsed 'result' object
             formMessage.textContent = `SUCCESS: Stock for ${bloodType} is now ${result.new_stock}. ${result.alert_triggered ? 'ALERT SENT!' : ''}`;
             formMessage.classList.add('message-success');
-            // Refresh dashboard immediately after successful update
             fetchAndRenderInventory();
         } else {
-            // Try to extract error message from the parsed result
             const errorMessage = result.error || responseBody.body || 'Failed to update stock.';
             formMessage.textContent = `ERROR: ${errorMessage}`;
             formMessage.classList.add('message-error');
