@@ -30,4 +30,4 @@ jobs:
 
       - name: Deploy Frontend to S3
         run: |
-          aws s3 sync ./frontend s3://blood-bank-dashboard/ --delete
+          aws s3 sync ./frontend s3://blood-bank-dashboard/ --delete 
