@@ -1,0 +1,37 @@
+# template.yaml
+Resources:
+  # Define the DynamoDB table
+  BloodInventoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: BloodBankInventory
+      KeySchema:
+        - AttributeName: BloodType
+          KeyType: HASH
+        - AttributeName: LocationID
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: BloodType
+          AttributeType: S
+        - AttributeName: LocationID
+          AttributeType: S
+      # ... other settings
+
+  # Define the Lambda function for updates and alerts
+  UpdateInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: backend/update_inventory_and_alert.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref BloodInventoryTable
+        - SNSPublishMessagePolicy:
+            TopicArn: arn:aws:sns:us-east-1:545313858792:LowStockAlertsTopic
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /inventory
+            Method: post
+# ... and define GetInventoryFunction and S3 bucket hosting

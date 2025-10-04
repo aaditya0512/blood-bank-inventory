@@ -1,0 +1,33 @@
+name: Deploy Blood Bank System via SAM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install SAM CLI
+        run: pip install aws-sam-cli
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AKIAX55Z5ETUBKVUQSAG}}
+          aws-secret-access-key: ${{ secrets.W4goR2pKuiqpsfmSx7GEuLq3NuVf80NHAdmndXUU}}
+          aws-region: us-east-1 # Change to your region
+
+      - name: SAM Build and Deploy
+        run: |
+          sam build
+          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name blood-bank-stack --capabilities CAPABILITY_IAM
+
+      - name: Deploy Frontend to S3
+        run: |
+          aws s3 sync ./frontend s3://blood-bank-dashboard-xyz/ --delete
