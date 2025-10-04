@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1 # CHANGE this to your desired AWS Region (e.g., eu-central-1)
-      S3_DASHBOARD_BUCKET: blood-bank-dashboard # REPLACE with your S3 bucket name (e.g., blood-bank-dashboard-xyz)
+      S3_DASHBOARD_BUCKET: blood-bank-dashboard # REPLACE with your S3 bucket name
 
     steps:
       - name: Checkout Code
@@ -37,7 +37,7 @@ jobs:
       - name: SAM Build
         run: sam build --template template.yaml
 
-     - name: SAM Deploy (Backend)
+      - name: SAM Deploy (Backend)
         id: sam_deploy
         run: |
           sam deploy \
@@ -47,8 +47,8 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --confirm-changeset \
             --no-fail-on-empty-changeset \
-            --resolve-s3  # <--- ADD THIS FLAG
-      
+            --resolve-s3 # Ensures SAM can upload code artifacts
+
       - name: Get API Endpoint URL
         id: get_api_url
         # Uses AWS CLI to retrieve the API URL from the deployed stack's outputs
@@ -64,7 +64,7 @@ jobs:
           echo "Updating script.js with base URL: $API_BASE_URL"
           
           # Use sed to replace the placeholder lines with the actual generated URL
-          # Note: This assumes you are using the BASE_API_URL structure as discussed.
+          # Assumes the script.js has the line: const BASE_API_URL = 'https://PLACEHOLDER_URL_HERE/dev/';
           sed -i "s|// const BASE_API_URL = 'https://PLACEHOLDER_URL_HERE/dev/';|const BASE_API_URL = '$API_BASE_URL';|" frontend/script.js
           
           # Clean up any potential double quotes or trailing slashes if necessary
@@ -74,4 +74,5 @@ jobs:
         # Syncs the updated script.js and all other frontend files to the S3 bucket
         run: |
           aws s3 sync ./frontend/ s3://${{ env.S3_DASHBOARD_BUCKET }}/ --delete
+          # Sets Cache-Control headers for index.html to ensure users get the latest script.js reference
           aws s3 cp s3://${{ env.S3_DASHBOARD_BUCKET }}/index.html s3://${{ env.S3_DASHBOARD_BUCKET }}/index.html --metadata-directive REPLACE --cache-control max-age=0 --content-type text/html
