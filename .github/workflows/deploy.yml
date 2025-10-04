@@ -30,9 +30,9 @@ jobs:
         # This action uses the secrets stored in GitHub to authorize with AWS
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AKIAX55Z5ETUH2HRUZHC }}
-          aws-secret-access-key: ${{ secrets.uW14sR7Z7i7vuKS9gkEzixjwS+2eWghDHToeOO4C }}
-          aws-region: ${{ env.us-east-1 }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: SAM Build
         run: sam build --template template.yaml
