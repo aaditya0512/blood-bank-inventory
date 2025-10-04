@@ -39,15 +39,10 @@ jobs:
 
       - name: SAM Deploy (Backend)
         id: sam_deploy
-        run: |
-          sam deploy \
-            --template-file .aws-sam/build/template.yaml \
-            --stack-name BloodBankStack \
-            --region ${{ env.AWS_REGION }} \
-            --capabilities CAPABILITY_IAM \
-            --no-confirm-changeset \ # <--- Necessary for CI/CD
-            --no-fail-on-empty-changeset \
-            --resolve-s3               # <--- This is the missing piece!
+        # Running the full command on one line avoids issues with backslashes and YAML multiline interpretation
+        run: sam deploy --template-file .aws-sam/build/template.yaml --stack-name BloodBankStack --region ${{ env.AWS_REGION }} --capabilities CAPABILITY_IAM --no-confirm-changeset --no-fail-on-empty-changeset --resolve-s3
+      
+    
       - name: Get API Endpoint URL
         id: get_api_url
         # Uses AWS CLI to retrieve the API URL from the deployed stack's outputs
