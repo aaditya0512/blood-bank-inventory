@@ -1,6 +1,6 @@
 // !!! REPLACE WITH YOUR ACTUAL API GATEWAY URLS !!!
-const GET_API_URL = 'https://m3sh3lqagk.execute-api.us-east-1.amazonaws.com/dev/status';
-const POST_API_URL = 'https://m3sh3lqagk.execute-api.us-east-1.amazonaws.com/dev/inventory';
+const GET_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/status';
+const POST_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/inventory';
 
 const inventoryList = document.getElementById('inventory-list');
 const lastUpdatedSpan = document.getElementById('last-updated');
