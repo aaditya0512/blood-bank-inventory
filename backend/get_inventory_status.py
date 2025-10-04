@@ -1,10 +1,14 @@
 import boto3
 import json
 from decimal import Decimal
+import os # <-- Must import 'os' to access environment variables
 
+# --- FIX IS HERE ---
+# Read the table name from the environment variable set by the SAM template
+TABLE_NAME = os.environ.get('DYNAMODB_TABLE_NAME') 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('BloodBankInventory')
-
+# Use the variable
+table = dynamodb.Table(TABLE_NAME)
 # Helper class to convert a DynamoDB item to JSON (handles Decimal types)
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
