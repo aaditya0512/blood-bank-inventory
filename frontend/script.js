@@ -1,7 +1,7 @@
 // --- START: CI/CD INJECTION BLOCK ---
 // !!! This placeholder will be replaced by GitHub Actions during deployment !!!
 // The workflow will replace this entire line with: const BASE_API_URL = 'https://YOUR_LIVE_URL/dev/'; 
-const BASE_API_URL = 'https://PLACEHOLDER_URL_HERE/dev/'; 
+const BASE_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/'; 
 
 const GET_API_URL = BASE_API_URL + 'status';
 const POST_API_URL = BASE_API_URL + 'inventory';
