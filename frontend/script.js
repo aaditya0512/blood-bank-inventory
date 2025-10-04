@@ -22,15 +22,25 @@ function getStatusClass(currentStock, safetyThreshold) {
 
 async function fetchAndRenderInventory() {
     try {
-
         const currentSelection = bloodTypeSelect.value; 
 
         const response = await fetch(GET_API_URL);
-        const responseBody = await response.json();
+
+        // 🛑 NEW CHECK: Throw an error if the HTTP status is bad (e.g., 404, 500, network error)
+        if (!response.ok) {
+             // If the network call failed, response.status will hold the HTTP error code
+             throw new Error('Network call failed with status code ' + response.status);
+        }
+
+        // Now attempt to parse the JSON. This is safe if response.ok is true.
+        const responseBody = await response.json(); 
 
         if (responseBody.statusCode !== 200) {
-            throw new Error('API returned status code ' + responseBody.statusCode);
+            // This catches the *successful* network call where Lambda returned a non-200 code
+            throw new Error('API returned Lambda status code ' + responseBody.statusCode + ' with error: ' + responseBody.body);
         }
+        
+        // ... rest of the code ...
         
         const data = JSON.parse(responseBody.body); 
 
