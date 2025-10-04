@@ -1,0 +1,82 @@
+body {
+    font-family: sans-serif;
+    background-color: #f4f7f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+header {
+    background-color: #d93d3d;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+main {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+#inventory-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+.stock-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    border-left: 10px solid;
+    transition: transform 0.2s;
+}
+.stock-card:hover {
+    transform: translateY(-5px);
+}
+.stock-card h3 {
+    margin-top: 0;
+    font-size: 1.8em;
+}
+.quantity {
+    font-size: 3em;
+    font-weight: bold;
+    margin: 10px 0;
+}
+.threshold {
+    font-size: 0.9em;
+    color: #666;
+}
+/* Color Coding */
+.status-GREEN { border-color: #4CAF50; } /* Good */
+.status-YELLOW { border-color: #FFC107; } /* Warning */
+.status-RED { border-color: #F44336; } /* Critical */
+
+/* Form Styling */
+#simulation-form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+#update-form label, #update-form input, #update-form select, #update-form button {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+}
+#update-form input, #update-form select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+#update-form button {
+    background-color: #3f51b5;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.hidden { display: none; }
+.message-success { color: green; }
+.message-error { color: red; }
