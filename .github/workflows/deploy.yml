@@ -45,6 +45,7 @@ jobs:
             --stack-name BloodBankStack \
             --region ${{ env.AWS_REGION }} \
             --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset
             --confirm-changeset \
             --no-fail-on-empty-changeset \
             --resolve-s3 # Ensures SAM can upload code artifacts
