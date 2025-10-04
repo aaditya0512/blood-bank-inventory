@@ -1,7 +1,7 @@
 // --- START: CI/CD INJECTION BLOCK ---
 // The live API URL will be injected here by the GitHub Actions workflow.
-// Example: const BASE_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/'; 
-const BASE_API_URL = 'https://pg7i57nyhh.execute-api.us-east-1.amazonaws.com/dev/'; 
+// Replace the hardcoded URL with the placeholder line used in the CI/CD script.
+const BASE_API_URL = 'https://PLACEHOLDER_URL_HERE/dev/'; 
 
 const GET_API_URL = BASE_API_URL + 'status';
 const POST_API_URL = BASE_API_URL + 'inventory';
@@ -34,6 +34,7 @@ async function fetchAndRenderInventory() {
 
         // 2. HTTP Status Check (Network Layer Error)
         if (!response.ok) {
+            // This error is caught if the request fails at the network level (e.g., 404, 500 from API Gateway itself)
             throw new Error('Network call failed with status code ' + response.status);
         }
 
@@ -42,7 +43,7 @@ async function fetchAndRenderInventory() {
         
         // 4. Check Lambda Status Code
         if (responseBody.statusCode !== 200) {
-            // This catches errors originating from the Lambda execution
+            // This catches the *successful* network call where Lambda returned a non-200 code
             throw new Error('API returned Lambda status code ' + responseBody.statusCode + ' with error: ' + responseBody.body);
         }
         

@@ -7,8 +7,6 @@ Globals:
     Runtime: python3.9
     Timeout: 10
     MemorySize: 128
-    # Define environment variables used by the Lambda functions
-  
 
 Resources:
   # ------------------------------------------------------------------
@@ -28,7 +26,7 @@ Resources:
           KeyType: HASH
         - AttributeName: LocationID
           KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST # Use On-Demand for cost efficiency
+      BillingMode: PAY_PER_REQUEST
 
   # ------------------------------------------------------------------
   # 2. NOTIFICATION (SNS)
@@ -37,7 +35,6 @@ Resources:
     Type: AWS::SNS::Topic
     Properties:
       TopicName: LowStockAlertsTopic
-      # Ensure you manually subscribe an email address to this topic after deployment
 
   # ------------------------------------------------------------------
   # 3. BACKEND: UPDATE/ALERT Lambda (POST /inventory)
@@ -46,21 +43,24 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: update_inventory_and_alert.lambda_handler
-      CodeUri: backend/ # Points to the backend directory
-      # Grant permissions to read/write DynamoDB and publish to SNS
-      Policies:
+      CodeUri: backend/ 
+      Environment: # CRITICAL: Passes resource names to Python code
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref BloodInventoryTable
+          SNS_TOPIC_ARN: !Ref LowStockAlertsTopic
+      Policies: # Permissions to write to DB and publish to SNS
         - DynamoDBWritePolicy:
-            TableName: !Ref BloodBankInventory
+            TableName: !Ref BloodInventoryTable
         - SNSPublishMessagePolicy:
-            TopicArn: !Ref LowStockAlertsTopic
+            TopicName: !GetAtt LowStockAlertsTopic.TopicName # Uses TopicName for SAM build compatibility
       Events:
         Api:
           Type: Api
           Properties:
             Path: /inventory
             Method: POST
-            RestApiId: !Ref BloodBankApiGateway # Link to the API Gateway defined below
-            
+            RestApiId: !Ref BloodBankApiGateway 
+
   # ------------------------------------------------------------------
   # 4. BACKEND: READ STATUS Lambda (GET /status)
   # ------------------------------------------------------------------
@@ -68,18 +68,21 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get_inventory_status.lambda_handler
-      CodeUri: backend/ # Points to the backend directory
-      # Grant read-only permission to the DynamoDB table
-      Policies:
+      CodeUri: backend/
+      Environment: # CRITICAL: Passes resource names to Python code
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref BloodInventoryTable
+          SNS_TOPIC_ARN: !Ref LowStockAlertsTopic
+      Policies: # Read-only permission to DynamoDB
         - DynamoDBReadPolicy:
-            TableName: !Ref BloodBankInventory
+            TableName: !Ref BloodInventoryTable
       Events:
         Api:
           Type: Api
           Properties:
             Path: /status
             Method: GET
-            RestApiId: !Ref BloodBankApiGateway # Link to the API Gateway defined below
+            RestApiId: !Ref BloodBankApiGateway 
 
   # ------------------------------------------------------------------
   # 5. API GATEWAY (Shared across functions)
@@ -88,15 +91,17 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: dev
-      Cors:
+      Cors: # Enables Cross-Origin Access for your S3 dashboard
         AllowMethods: "'GET,POST,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        AllowOrigin: "'*'" # Allow all origins for the dashboard (S3)
+        AllowOrigin: "'*'" 
 
 # ------------------------------------------------------------------
-# OUTPUTS (Used to retrieve the API URL after deployment)
+# OUTPUTS (Used by GitHub Actions to retrieve the URL)
 # ------------------------------------------------------------------
 Outputs:
   ApiUrl:
-    Description: "API Gateway endpoint URL for Prod stage"
+    Description: "API Gateway endpoint URL for Dev stage"
     Value: !Sub "https://${BloodBankApiGateway}.execute-api.${AWS::Region}.amazonaws.com/dev/"
+
+
