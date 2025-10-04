@@ -1,7 +1,7 @@
 // --- START: CI/CD INJECTION BLOCK ---
 // The live API URL will be injected here by the GitHub Actions workflow.
 // Replace the hardcoded URL with the placeholder line used in the CI/CD script.
-const BASE_API_URL = 'https://PLACEHOLDER_URL_HERE/dev/'; 
+const BASE_API_URL = 'https://gyv6tlk2zk.execute-api.us-east-1.amazonaws.com/dev/'; 
 
 const GET_API_URL = BASE_API_URL + 'status';
 const POST_API_URL = BASE_API_URL + 'inventory';
